@@ -2,3 +2,4 @@
 drivers
 target/
 .claude/
+application-local.properties
