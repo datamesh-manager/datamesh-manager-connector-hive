@@ -217,13 +217,58 @@ java -jar target/datamesh-manager-connector-hive-0.0.1-SNAPSHOT.jar
 ```
 
 ### Docker
-```bash
-# Build the image
-docker build -t datamesh-manager-connector-hive .
 
-# Run the container
-docker run -p 8080:8080 -v $(pwd)/application.properties:/app/application.properties datamesh-manager-connector-hive
+#### Building the Docker Image
+```bash
+# Build the application first
+mvn clean package
+
+# Build the Docker image
+docker build -t datamesh-manager-connector-hive .
 ```
+
+#### Running with Docker
+```bash
+# Run with external configuration file
+docker run -p 8080:8080 \
+  -v $(pwd)/application.properties:/app/application.properties \
+  datamesh-manager-connector-hive
+
+# Run with environment variables
+docker run -p 8080:8080 \
+  -e DATAMESHMANAGER_CLIENT_HOST=https://api.datamesh-manager.com \
+  -e DATAMESHMANAGER_CLIENT_APIKEY=your-api-key \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_HOST=your-hive-host \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PORT=10000 \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_USERNAME=your-username \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PASSWORD=your-password \
+  datamesh-manager-connector-hive
+
+# Run with custom JDBC drivers
+docker run -p 8080:8080 \
+  -v $(pwd)/drivers:/app/drivers \
+  -v $(pwd)/application.properties:/app/application.properties \
+  datamesh-manager-connector-hive
+```
+
+#### Docker Image Details
+- **Base Image**: `openjdk:17-jre-slim`
+- **Exposed Port**: 8080
+- **Working Directory**: `/app`
+- **Configuration**: Mount `application.properties` to `/app/application.properties`
+- **JDBC Drivers**: Mount custom drivers to `/app/drivers` (automatically loaded)
+
+#### Docker Environment Variables
+Spring Boot automatically converts environment variables to configuration properties:
+
+| Environment Variable | Configuration Property |
+|---------------------|----------------------|
+| `DATAMESHMANAGER_CLIENT_HOST` | `datameshmanager.client.host` |
+| `DATAMESHMANAGER_CLIENT_APIKEY` | `datameshmanager.client.apikey` |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_HOST` | `datameshmanager.client.hive.connection.host` |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PORT` | `datameshmanager.client.hive.connection.port` |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_USERNAME` | `datameshmanager.client.hive.connection.username` |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PASSWORD` | `datameshmanager.client.hive.connection.password` |
 
 ## Authentication and Security
 
