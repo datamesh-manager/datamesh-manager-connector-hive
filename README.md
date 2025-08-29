@@ -1,15 +1,51 @@
-# DataMesh Manager Connector for Hive
+Data Mesh Manager Connector for Hive
+===
 
-This connector allows DataMesh Manager to synchronize assets from Hive-compatible systems via JDBC. It supports Apache Hive, Apache Impala, and other Hive-compatible systems.
+The connector for Hive-compatible systems is a Spring Boot application that uses the [datamesh-manager-sdk](https://github.com/datamesh-manager/datamesh-manager-sdk) internally, and is available as a ready-to-use Docker image [datameshmanager/datamesh-manager-connector-hive](https://hub.docker.com/r/datameshmanager/datamesh-manager-connector-hive) to be deployed in your environment. This connector allows DataMesh Manager to synchronize assets from Hive-compatible systems via JDBC. It supports Apache Hive, Apache Impala, and other Hive-compatible systems.
 
 ## Features
 
-- Connects to Hive-compatible systems via JDBC
-- Discovers databases, tables, and columns
-- Converts database objects to DataMesh Manager assets
-- Supports detailed table information parsing
-- Creates hierarchical asset relationships (database → schema → table)
-- Configurable asset ID prefixes and ownership
+- **Asset Synchronization**: Sync tables and schemas from Hive-compatible systems to the Data Mesh Manager as Assets via JDBC
+- **Database Discovery**: Discovers databases, tables, and columns from Apache Hive, Apache Impala, and other Hive-compatible systems
+- **Hierarchical Relationships**: Creates hierarchical asset relationships (database → table)
+- **Detailed Table Information**: Supports parsing and storing detailed table metadata
+- **Flexible Configuration**: Configurable asset ID prefixes, ownership, and connection parameters
+
+## Usage
+
+Start the connector using Docker. You must pass the API keys and connection details as environment variables.
+
+```
+docker run \
+  -e DATAMESHMANAGER_CLIENT_APIKEY='insert-api-key-here' \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_HOST='your-hive-host' \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PORT=10000 \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_USERNAME='your-username' \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PASSWORD='your-password' \
+  -e DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_JDBC_URL='jdbc:hive2://your-hive-host:10000/default' \
+  datameshmanager/datamesh-manager-connector-hive:latest
+```
+
+## Configuration
+
+| Environment Variable | Default Value | Description |
+|----------------------|---------------|-------------|
+| `DATAMESHMANAGER_CLIENT_HOST` | `https://api.datamesh-manager.com` | Base URL of the Data Mesh Manager API. |
+| `DATAMESHMANAGER_CLIENT_APIKEY` | | API key for authenticating requests to the Data Mesh Manager. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_HOST` | `localhost` | Hive server hostname. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PORT` | `10000` | Hive server port. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_DATABASE` | `default` | Default database. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_USERNAME` | | Username for authentication. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_PASSWORD` | | Password for authentication. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_DRIVER_CLASS_NAME` | `org.apache.hive.jdbc.HiveDriver` | JDBC driver class name. |
+| `DATAMESHMANAGER_CLIENT_HIVE_CONNECTION_JDBC_URL` | `jdbc:hive2://localhost:10000/default` | Full JDBC connection URL. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_CONNECTORID` | `hive-assets` | Identifier for the Hive assets connector. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_ENABLED` | `true` | Indicates whether Hive asset tracking is enabled. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_POLLINTERVAL` | `PT10M` | Polling interval for Hive asset updates, in ISO 8601 duration format. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_DETAILED_TABLE_INFO` | `json` | How to handle detailed table information: `json`, `raw`, or `ignore`. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_ID_PREFIX` | `hive-` | Prefix for all asset IDs. |
+| `DATAMESHMANAGER_CLIENT_HIVE_ASSETS_OWNER` | | Default owner team ID for all assets. |
+
 
 ## Supported Systems
 
@@ -24,56 +60,6 @@ This connector allows DataMesh Manager to synchronize assets from Hive-compatibl
 - Maven 3.6+
 - Access to a Hive-compatible system
 - DataMesh Manager API access
-
-## Configuration
-
-Configure the connector in `application.properties`:
-
-```properties
-# DataMesh Manager API configuration
-datameshmanager.client.host=https://api.datamesh-manager.com
-datameshmanager.client.apikey=your-api-key
-
-# Hive connection settings
-datameshmanager.client.hive.connection.host=localhost
-datameshmanager.client.hive.connection.port=10000
-datameshmanager.client.hive.connection.database=default
-datameshmanager.client.hive.connection.username=your-username
-datameshmanager.client.hive.connection.password=your-password
-datameshmanager.client.hive.connection.driver-class-name=org.apache.hive.jdbc.HiveDriver
-datameshmanager.client.hive.connection.jdbc-url=jdbc:hive2://localhost:10000/default
-
-# Asset synchronization settings
-datameshmanager.client.hive.assets.connectorid=hive-assets
-datameshmanager.client.hive.assets.enabled=true
-datameshmanager.client.hive.assets.pollinterval=PT10M
-datameshmanager.client.hive.assets.detailed-table-info=json
-datameshmanager.client.hive.assets.id-prefix=hive-
-datameshmanager.client.hive.assets.owner=
-```
-
-### Configuration Properties Reference
-
-#### Connection Properties
-| Property | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `datameshmanager.client.hive.connection.host` | Hive server hostname | `localhost` | Yes |
-| `datameshmanager.client.hive.connection.port` | Hive server port | `10000` | Yes |
-| `datameshmanager.client.hive.connection.database` | Default database | `default` | Yes |
-| `datameshmanager.client.hive.connection.username` | Username for authentication | - | Yes |
-| `datameshmanager.client.hive.connection.password` | Password for authentication | - | Yes |
-| `datameshmanager.client.hive.connection.driver-class-name` | JDBC driver class name | `org.apache.hive.jdbc.HiveDriver` | Yes |
-| `datameshmanager.client.hive.connection.jdbc-url` | Full JDBC connection URL | `jdbc:hive2://localhost:10000/default` | Yes |
-
-#### Asset Properties
-| Property | Description | Options | Default | Required |
-|----------|-------------|---------|---------|----------|
-| `datameshmanager.client.hive.assets.connectorid` | Unique connector identifier | Any string | `hive-assets` | Yes |
-| `datameshmanager.client.hive.assets.enabled` | Enable asset synchronization | `true`, `false` | `true` | No |
-| `datameshmanager.client.hive.assets.pollinterval` | Synchronization interval (ISO-8601) | Any valid duration | `PT10M` | No |
-| `datameshmanager.client.hive.assets.detailed-table-info` | How to handle detailed table information | `json`, `raw`, `ignore` | `json` | No |
-| `datameshmanager.client.hive.assets.id-prefix` | Prefix for all asset IDs | Any string | `hive-` | No |
-| `datameshmanager.client.hive.assets.owner` | Default owner team ID for all assets | Valid team ID or empty | Empty | No |
 
 ## JDBC Driver Examples
 
